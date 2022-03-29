@@ -4,10 +4,25 @@ import 'package:fooderlich_test/components/components.dart';
 import 'package:fooderlich_test/components/today_recipe_list_view.dart';
 import 'package:fooderlich_test/models/explore_data.dart';
 
-class ExploreScreen extends StatelessWidget {
+class ExploreScreen extends StatefulWidget {
+  ExploreScreen({Key? key}) : super(key: key);
+
+  @override
+  State<ExploreScreen> createState() => _ExploreScreenState();
+}
+
+class _ExploreScreenState extends State<ExploreScreen> {
   final mockService = MockFooderlichService();
 
-  ExploreScreen({Key? key}) : super(key: key);
+  late ScrollController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = ScrollController();
+    _controller.addListener(_scrollListener);
+  }
+
   @override
   Widget build(BuildContext context) {
     return FutureBuilder(
@@ -15,6 +30,7 @@ class ExploreScreen extends StatelessWidget {
       builder: (context, AsyncSnapshot<ExploreData> snapshot) {
         if (snapshot.connectionState == ConnectionState.done) {
           return ListView(
+            controller: _controller,
             scrollDirection: Axis.vertical,
             children: [
               TodayRecipeListView(recipes: snapshot.data?.todayRecipes ?? []),
@@ -29,5 +45,22 @@ class ExploreScreen extends StatelessWidget {
         }
       },
     );
+  }
+
+  @override
+  void dispose() {
+    _controller.removeListener(_scrollListener);
+    super.dispose();
+  }
+
+  void _scrollListener() {
+    if (_controller.offset >= _controller.position.maxScrollExtent &&
+        !_controller.position.outOfRange) {
+      print('i am at the bottom!');
+    }
+    if (_controller.offset <= _controller.position.minScrollExtent &&
+        !_controller.position.outOfRange) {
+      print('i am at the top!');
+    }
   }
 }
